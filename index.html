@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consulta laboral</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f7f9;
+      color: #1f2d3d;
+    }
+    body {
+      margin: 0;
+      padding: 18px;
+    }
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 24px;
+      line-height: 1.2;
+      margin: 0 0 8px;
+    }
+    .muted {
+      color: #5d6d7e;
+      font-size: 14px;
+      margin: 0 0 18px;
+    }
+    form {
+      background: #fff;
+      border: 1px solid #dce4ea;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(31, 45, 61, .08);
+    }
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: 700;
+    }
+    input, select, textarea, button {
+      box-sizing: border-box;
+      width: 100%;
+      font: inherit;
+      border-radius: 6px;
+    }
+    input, select, textarea {
+      border: 1px solid #c9d4dc;
+      padding: 11px;
+      background: #fff;
+    }
+    textarea {
+      min-height: 170px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 18px;
+      border: 0;
+      padding: 13px 16px;
+      background: #128c7e;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .notice {
+      display: none;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 6px;
+      background: #e8f6f3;
+      color: #0b5345;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Consulta laboral</h1>
+  <p class="muted">Complete los datos y adjunte la documentación en el chat de WhatsApp que se abrirá al enviar.</p>
+
+  <form id="consulta-form">
+    <label for="cliente">Nombre / carpeta</label>
+    <input id="cliente" name="cliente" autocomplete="name" required placeholder="Ej.: Juan Perez">
+
+    <label for="tipo">Tipo de consultante</label>
+    <select id="tipo" name="tipo">
+      <option>Abogado</option>
+      <option>Particular</option>
+      <option>Empresa</option>
+    </select>
+
+    <label for="audit_mode">Tipo de auditoría</label>
+    <select id="audit_mode" name="audit_mode">
+      <option value="comun">Auditoría común</option>
+      <option value="premium">Auditoría premium</option>
+    </select>
+
+    <label for="validacion">Validación experta</label>
+    <select id="validacion" name="validacion">
+      <option value="No">No</option>
+      <option value="Si">Sí</option>
+    </select>
+
+    <label for="consulta">Detalle de la consulta</label>
+    <textarea id="consulta" name="consulta" required placeholder="Explique hechos, etapa procesal, objetivo de la consulta y urgencia."></textarea>
+
+    <button type="submit">Enviar consulta</button>
+  </form>
+
+  <div id="notice" class="notice">CONSULTA ENVIADA Y RECIBIDA. A la brevedad recibirá su informe.</div>
+</main>
+
+<script>
+  const whatsappNumber = "543415502945";
+
+  function encodeForQuery(value) {
+    if (typeof encodeURIComponent === "function") {
+      return encodeURIComponent(value);
+    }
+    const bytes = new TextEncoder().encode(value);
+    return Array.from(bytes).map(function (byte) {
+      const char = String.fromCharCode(byte);
+      return /[A-Za-z0-9_.~-]/.test(char)
+        ? char
+        : "%" + byte.toString(16).toUpperCase().padStart(2, "0");
+    }).join("");
+  }
+
+  document.getElementById("consulta-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const text = [
+      "CONSULTA LABORAL - FORMULARIO WHATSAPP",
+      "",
+      "Cliente / carpeta: " + data.get("cliente"),
+      "Tipo de consultante: " + data.get("tipo"),
+      "Tipo de auditoria: " + data.get("audit_mode"),
+      "Validacion experta requerida por el cliente: " + data.get("validacion"),
+      "",
+      "Referencia de consulta:",
+      data.get("consulta"),
+      "",
+      "DOCUMENTOS: los adjuntare manualmente en este chat."
+    ].join("\n");
+
+    document.getElementById("notice").style.display = "block";
+    const whatsappUrl = "https://wa.me/" + whatsappNumber + "?text=" + encodeForQuery(text);
+    window.setTimeout(function () {
+      window.location.href = whatsappUrl;
+    }, 250);
+  });
+</script>
+</body>
+</html>
