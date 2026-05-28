@@ -52,6 +52,10 @@
       padding: 11px;
       background: #fff;
     }
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+    }
     textarea {
       min-height: 170px;
       resize: vertical;
@@ -73,6 +77,16 @@
       background: #e8f6f3;
       color: #0b5345;
       font-weight: 700;
+    }
+    .consent {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: 13px;
+      line-height: 1.35;
+      color: #34495e;
+      font-weight: 400;
     }
   </style>
 </head>
@@ -108,6 +122,11 @@
     <label for="consulta">Detalle de la consulta</label>
     <textarea id="consulta" name="consulta" required placeholder="Explique hechos, etapa procesal, objetivo de la consulta y urgencia."></textarea>
 
+    <label class="consent">
+      <input id="consent_ia" name="consent_ia" type="checkbox" required>
+      <span>Acepto que la consulta sea analizada mediante herramientas de inteligencia artificial experimental e investigativa, sin validación humana salvo contratación o selección expresa de informe con validación experta.</span>
+    </label>
+
     <button type="submit">Enviar consulta</button>
   </form>
 
@@ -140,6 +159,7 @@
       "Tipo de consultante: " + data.get("tipo"),
       "Tipo de auditoria: " + data.get("audit_mode"),
       "Validacion experta requerida por el cliente: " + data.get("validacion"),
+      "Consentimiento IA experimental/investigativa: Si, prestado expresamente por el consultante/usuario para estos fines.",
       "",
       "Referencia de consulta:",
       data.get("consulta"),
