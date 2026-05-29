@@ -113,6 +113,13 @@
       <option value="premium">Auditoría premium</option>
     </select>
 
+    <label for="perfil_salida">Perfil de salida</label>
+    <select id="perfil_salida" name="perfil_salida">
+      <option value="Objetivo">Objetivo técnico</option>
+      <option value="Abogado laboralista trabajador">Abogado laboralista de parte trabajadora</option>
+      <option value="Ambos">Ambos: objetivo + especial laboralista</option>
+    </select>
+
     <label for="validacion">Validación experta</label>
     <select id="validacion" name="validacion">
       <option value="No">No</option>
@@ -158,6 +165,7 @@
       "Cliente / carpeta: " + data.get("cliente"),
       "Tipo de consultante: " + data.get("tipo"),
       "Tipo de auditoria: " + data.get("audit_mode"),
+      "Perfil de salida: " + data.get("perfil_salida"),
       "Validacion experta requerida por el cliente: " + data.get("validacion"),
       "Consentimiento IA experimental/investigativa: Si, prestado expresamente por el consultante/usuario para estos fines.",
       "",
