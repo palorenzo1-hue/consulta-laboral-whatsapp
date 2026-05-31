@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Consulta Laboral Asistida IA Pablo A Lorenzo</title>
+  <title>Consulta laboral</title>
   <style>
     :root {
       color-scheme: light;
@@ -88,12 +88,21 @@
       color: #34495e;
       font-weight: 400;
     }
+    .privacy-box {
+      margin: 14px 0;
+      padding: 12px;
+      border-left: 4px solid #128c7e;
+      background: #eef8f6;
+      color: #1f4f46;
+      font-size: 13px;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
 <main>
   <h1>Consulta laboral</h1>
-  <p class="muted">Complete los datos y adjunte la documentación en el chat de WhatsApp que se abrirá al enviar.</p>
+  <p class="muted">Complete solo los datos mínimos. La documentación o datos sensibles se remitirán después por el canal que se indique.</p>
 
   <form id="consulta-form">
     <label for="cliente">Nombre / carpeta</label>
@@ -116,7 +125,7 @@
     <label for="perfil_salida">Perfil de salida</label>
     <select id="perfil_salida" name="perfil_salida">
       <option value="Objetivo">Objetivo técnico</option>
-      <option value="Abogado laboralista trabajador">Abogado laboralista de parte trabajadora</option>
+      <option value="Abogado laboral obrero (laboralista)">Abogado laboral obrero (laboralista)</option>
       <option value="Ambos">Ambos: objetivo + especial laboralista</option>
     </select>
 
@@ -126,8 +135,12 @@
       <option value="Si">Sí</option>
     </select>
 
-    <label for="consulta">Detalle de la consulta</label>
-    <textarea id="consulta" name="consulta" required placeholder="Explique hechos, etapa procesal, objetivo de la consulta y urgencia."></textarea>
+    <div class="privacy-box">
+      Para proteger la confidencialidad, no incluya en esta primera pantalla DNI, domicilios, datos de salud, afiliación sindical, nombres de terceros ni documentación sensible. Envíe solo una descripción mínima del tema, etapa y urgencia.
+    </div>
+
+    <label for="consulta">Tema y urgencia de la consulta</label>
+    <textarea id="consulta" name="consulta" maxlength="700" placeholder="Ej.: despido con causa, accidente laboral, discriminación, revisión de sentencia o liquidación. Indique etapa y urgencia sin datos sensibles."></textarea>
 
     <label class="consent">
       <input id="consent_ia" name="consent_ia" type="checkbox" required>
@@ -169,10 +182,10 @@
       "Validacion experta requerida por el cliente: " + data.get("validacion"),
       "Consentimiento IA experimental/investigativa: Si, prestado expresamente por el consultante/usuario para estos fines.",
       "",
-      "Referencia de consulta:",
-      data.get("consulta"),
+      "Referencia minima de consulta:",
+      data.get("consulta") || "Solicitud de consulta laboral. Datos y documentacion sensible se remitiran por canal indicado.",
       "",
-      "DOCUMENTOS: los adjuntare manualmente en este chat."
+      "DOCUMENTOS/DATOS SENSIBLES: no fueron cargados en el formulario publico. Los remitire luego por el canal indicado."
     ].join("\n");
 
     document.getElementById("notice").style.display = "block";
