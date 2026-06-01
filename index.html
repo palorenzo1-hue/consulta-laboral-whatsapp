@@ -69,6 +69,10 @@
       font-weight: 700;
       cursor: pointer;
     }
+    button.secondary {
+      margin-top: 10px;
+      background: #34495e;
+    }
     .notice {
       display: none;
       margin-top: 14px;
@@ -96,6 +100,20 @@
       color: #1f4f46;
       font-size: 13px;
       line-height: 1.4;
+    }
+    .preview {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #c9d4dc;
+      border-radius: 6px;
+      background: #f8fbfc;
+      color: #1f2d3d;
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.35;
+      max-height: 260px;
+      overflow: auto;
     }
   </style>
 </head>
@@ -137,6 +155,7 @@
 
     <div class="privacy-box">
       Para proteger la confidencialidad, no incluya en esta primera pantalla DNI, domicilios, datos de salud, afiliación sindical, nombres de terceros ni documentación sensible. Envíe solo una descripción mínima del tema, etapa y urgencia.
+      Si luego remite documentación por WhatsApp, IA externa o bases privadas, esos servicios pueden tratar datos conforme sus propias políticas.
     </div>
 
     <label for="consulta">Tema y urgencia de la consulta</label>
@@ -146,6 +165,17 @@
       <input id="consent_ia" name="consent_ia" type="checkbox" required>
       <span>Acepto que la consulta sea analizada mediante herramientas de inteligencia artificial experimental e investigativa, sin validación humana salvo contratación o selección expresa de informe con validación experta.</span>
     </label>
+    <label class="consent">
+      <input id="anonimizar_ia" name="anonimizar_ia" type="checkbox">
+      <span>Solicito anonimizar datos personales directos antes de enviar el caso a IA externa, cuando ello sea técnicamente posible sin afectar el análisis.</span>
+    </label>
+    <label class="consent">
+      <input id="consent_datos_sensibles" name="consent_datos_sensibles" type="checkbox" required>
+      <span>Consiento el tratamiento de los datos personales y eventualmente sensibles laborales necesarios para esta consulta, con uso limitado a la auditoría solicitada y deber de confidencialidad.</span>
+    </label>
+
+    <button type="button" class="secondary" id="preview-button">Previsualizar texto a enviar</button>
+    <div id="preview" class="preview"></div>
 
     <button type="submit">Enviar consulta</button>
   </form>
@@ -169,24 +199,51 @@
     }).join("");
   }
 
-  document.getElementById("consulta-form").addEventListener("submit", function (event) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const text = [
+  function anonymizeDirectData(value) {
+    let text = value || "";
+    text = text.replace(/\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/gi, "[EMAIL RESERVADO]");
+    text = text.replace(/\b(?:DNI|D\.N\.I\.|CUIL|CUIT)\s*[:#]?\s*\d[\d.\-\s]{5,}\b/gi, "[DOCUMENTO RESERVADO]");
+    text = text.replace(/\b\d{2}-\d{8}-\d\b/g, "[CUIT/CUIL RESERVADO]");
+    text = text.replace(/\b(?:tel(?:efono)?|teléfono|cel(?:ular)?|whatsapp|wsp)\s*[:#]?\s*\+?\d[\d\s().-]{6,}\b/gi, "[TELEFONO RESERVADO]");
+    text = text.replace(/\b(?:domicilio|direccion|dirección)\s*[:#]?\s*[^,\n;]{5,80}/gi, "[DOMICILIO RESERVADO]");
+    return text;
+  }
+
+  function buildWhatsappText(form) {
+    const data = new FormData(form);
+    const anonymize = data.get("anonimizar_ia") ? "Si" : "No";
+    const clientLabel = anonymize === "Si" ? "CONSULTA_ANONIMIZADA" : data.get("cliente");
+    const reference = data.get("consulta") || "Solicitud de consulta laboral. Datos y documentacion sensible se remitiran por canal indicado.";
+    const safeReference = anonymize === "Si" ? anonymizeDirectData(reference) : reference;
+    return [
       "CONSULTA LABORAL - FORMULARIO WHATSAPP",
       "",
-      "Cliente / carpeta: " + data.get("cliente"),
+      "Cliente / carpeta: " + clientLabel,
       "Tipo de consultante: " + data.get("tipo"),
       "Tipo de auditoria: " + data.get("audit_mode"),
       "Perfil de salida: " + data.get("perfil_salida"),
       "Validacion experta requerida por el cliente: " + data.get("validacion"),
       "Consentimiento IA experimental/investigativa: Si, prestado expresamente por el consultante/usuario para estos fines.",
+      "Consentimiento datos personales/sensibles laborales: Si, uso limitado a esta auditoria.",
+      "Anonimizacion previa a IA solicitada: " + anonymize,
       "",
       "Referencia minima de consulta:",
-      data.get("consulta") || "Solicitud de consulta laboral. Datos y documentacion sensible se remitiran por canal indicado.",
+      safeReference,
       "",
       "DOCUMENTOS/DATOS SENSIBLES: no fueron cargados en el formulario publico. Los remitire luego por el canal indicado."
     ].join("\n");
+  }
+
+  document.getElementById("preview-button").addEventListener("click", function () {
+    const form = document.getElementById("consulta-form");
+    const preview = document.getElementById("preview");
+    preview.textContent = buildWhatsappText(form);
+    preview.style.display = "block";
+  });
+
+  document.getElementById("consulta-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    const text = buildWhatsappText(event.currentTarget);
 
     document.getElementById("notice").style.display = "block";
     const whatsappUrl = "https://wa.me/" + whatsappNumber + "?text=" + encodeForQuery(text);
