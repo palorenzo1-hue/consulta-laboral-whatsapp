@@ -101,6 +101,12 @@
       font-size: 13px;
       line-height: 1.4;
     }
+    .field-note {
+      margin: 6px 0 0;
+      color: #5d6d7e;
+      font-size: 12px;
+      line-height: 1.35;
+    }
     .preview {
       display: none;
       margin-top: 12px;
@@ -120,7 +126,7 @@
 <body>
 <main>
   <h1>Consulta laboral</h1>
-  <p class="muted">Complete solo los datos mínimos. La documentación o datos sensibles se remitirán después por el canal que se indique.</p>
+  <p class="muted">Complete los datos mínimos para orientar la auditoría. Este formulario no permite subir documentación.</p>
 
   <form id="consulta-form">
     <label for="cliente">Nombre / carpeta</label>
@@ -133,33 +139,46 @@
       <option>Empresa</option>
     </select>
 
-    <label for="audit_mode">Tipo de auditoría</label>
-    <select id="audit_mode" name="audit_mode">
-      <option value="express">Consulta express</option>
-      <option value="comun">Auditoría común</option>
-      <option value="premium">Auditoría premium</option>
+    <input type="hidden" id="product_mode" name="product_mode" value="Editorial Juris - jurisdiccional para abogados">
+
+    <label for="jurisdiccion">Jurisdicción</label>
+    <select id="jurisdiccion" name="jurisdiccion">
+      <option>Santa Fe / Rosario</option>
+      <option>Buenos Aires</option>
+      <option>CABA / CNAT</option>
+      <option>Córdoba</option>
+      <option>Entre Ríos</option>
+      <option>Corrientes</option>
+      <option>Chaco</option>
     </select>
 
-    <label for="perfil_salida">Perfil de salida</label>
-    <select id="perfil_salida" name="perfil_salida">
-      <option value="Objetivo">Objetivo técnico</option>
-      <option value="Abogado laboral obrero (laboralista)">Abogado laboral obrero (laboralista)</option>
-      <option value="Ambos">Ambos: objetivo + especial laboralista</option>
+    <label for="naturaleza">Naturaleza de la consulta</label>
+    <select id="naturaleza" name="naturaleza">
+      <option>Fondo</option>
+      <option>Procesal</option>
+      <option>Mixta</option>
     </select>
+    <p class="field-note">Fondo: derecho sustantivo laboral. Procesal: competencia, plazos, prueba, excepciones, recursos o trámite. Mixta: combina ambos planos.</p>
 
-    <label for="validacion">Validación experta</label>
-    <select id="validacion" name="validacion">
-      <option value="No">No</option>
-      <option value="Si">Sí</option>
+    <label for="perfil_servicio">Eje de auditoría</label>
+    <select id="perfil_servicio" name="perfil_servicio">
+      <option>Procedimiento laboral / estrategia procesal</option>
+      <option>Auditoria integral para empresa</option>
+      <option>Defensa empleadora en litigio</option>
+      <option>ART / riesgos del trabajo</option>
+      <option>Consulta trabajador / parte actora</option>
     </select>
 
     <div class="privacy-box">
-      Para proteger la confidencialidad, no incluya en esta primera pantalla DNI, domicilios, datos de salud, afiliación sindical, nombres de terceros ni documentación sensible. Envíe solo una descripción mínima del tema, etapa y urgencia.
-      Si luego remite documentación por WhatsApp, IA externa o bases privadas, esos servicios pueden tratar datos conforme sus propias políticas.
+      Este formulario público no habilita carga ni envío de documentos. No adjunte archivos, imágenes, recibos, telegramas, historias clínicas ni expedientes por esta pantalla. Si luego se requiere documentación, será solicitada por un canal separado.
+      Para proteger la confidencialidad, no incluya DNI, domicilios, datos de salud, afiliación sindical, nombres de terceros ni documentación sensible salvo que sean estrictamente indispensables.
     </div>
 
-    <label for="consulta">Tema y urgencia de la consulta</label>
-    <textarea id="consulta" name="consulta" maxlength="700" placeholder="Ej.: despido con causa, accidente laboral, discriminación, revisión de sentencia o liquidación. Indique etapa y urgencia sin datos sensibles."></textarea>
+    <label for="tema_materia">Temas de consulta</label>
+    <input id="tema_materia" name="tema_materia" maxlength="240" placeholder="Ej.: despido discriminatorio; ART; solidaridad art. 30 LCT; caducidad procesal; prueba digital">
+
+    <label for="consulta">Referencia de consulta</label>
+    <textarea id="consulta" name="consulta" maxlength="1400" required placeholder="Hechos relevantes, etapa procesal, urgencia y pregunta jurídica concreta. Evite datos personales no indispensables. No pegue textos extensos de documentos ni transcriba prueba sensible completa."></textarea>
 
     <label class="consent">
       <input id="consent_ia" name="consent_ia" type="checkbox" required>
@@ -184,7 +203,7 @@
 </main>
 
 <script>
-  const whatsappNumber = "543412163531";
+  const whatsappNumber = "5493412163531";
 
   function encodeForQuery(value) {
     if (typeof encodeURIComponent === "function") {
@@ -219,18 +238,20 @@
       "CONSULTA LABORAL - FORMULARIO WHATSAPP",
       "",
       "Cliente / carpeta: " + clientLabel,
+      "Jurisdiccion: " + data.get("jurisdiccion"),
+      "Producto / proyecto: " + data.get("product_mode"),
       "Tipo de consultante: " + data.get("tipo"),
-      "Tipo de auditoria: " + data.get("audit_mode"),
-      "Perfil de salida: " + data.get("perfil_salida"),
-      "Validacion experta requerida por el cliente: " + data.get("validacion"),
+      "Naturaleza de la consulta: " + data.get("naturaleza"),
+      "Perfil de servicio de consultoria: " + data.get("perfil_servicio"),
+      "Tema / materia: " + (data.get("tema_materia") || "No informado"),
       "Consentimiento IA experimental/investigativa: Si, prestado expresamente por el consultante/usuario para estos fines.",
       "Consentimiento datos personales/sensibles laborales: Si, uso limitado a esta auditoria.",
       "Anonimizacion previa a IA solicitada: " + anonymize,
       "",
-      "Referencia minima de consulta:",
+      "Referencia de consulta:",
       safeReference,
       "",
-      "DOCUMENTOS/DATOS SENSIBLES: no fueron cargados en el formulario publico. Los remitire luego por el canal indicado."
+      "DOCUMENTOS/DATOS SENSIBLES: este formulario publico no permite subir documentos. No se adjuntaron archivos; si se requieren, seran solicitados por canal separado."
     ].join("\n");
   }
 
