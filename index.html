@@ -167,6 +167,11 @@
     <label for="cliente">Nombre / carpeta</label>
     <input id="cliente" name="cliente" autocomplete="name" required placeholder="Ej.: Juan Perez">
 
+
+    <label for="contacto_whatsapp">WhatsApp de contacto</label>
+    <input id="contacto_whatsapp" name="contacto_whatsapp" autocomplete="tel" inputmode="tel" maxlength="30" required placeholder="Ej.: +54 9 341 123-4567">
+    <p class="field-note">Se cifra antes de registrarse y se usa únicamente para vincular la consulta y, en una etapa posterior autorizada, devolver el informe final.</p>
+
     <label for="tipo">Tipo de consultante</label>
     <select id="tipo" name="tipo">
       <option>Abogado</option>
@@ -238,6 +243,10 @@
   <div id="notice" class="notice">CONSULTA ENVIADA Y RECIBIDA. A la brevedad recibirá su informe.</div>
 </main>
 
+
+<script src="./juris-bridge-config.js"></script>
+<script src="./juris-bridge-client.js"></script>
+
 <script>
   const whatsappNumber = "5493412163531";
 
@@ -298,15 +307,10 @@
     preview.style.display = "block";
   });
 
-  document.getElementById("consulta-form").addEventListener("submit", function (event) {
-    event.preventDefault();
-    const text = buildWhatsappText(event.currentTarget);
-
-    document.getElementById("notice").style.display = "block";
-    const whatsappUrl = "https://wa.me/" + whatsappNumber + "?text=" + encodeForQuery(text);
-    window.setTimeout(function () {
-      window.location.href = whatsappUrl;
-    }, 250);
+  window.JurisWhatsAppBridge.attach({
+    formId: "consulta-form",
+    noticeId: "notice",
+    whatsappNumber: whatsappNumber
   });
 </script>
 </body>
