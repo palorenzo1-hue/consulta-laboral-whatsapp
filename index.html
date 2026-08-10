@@ -107,6 +107,10 @@
       font-size: 12px;
       line-height: 1.35;
     }
+    .character-count {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
     .preview {
       display: none;
       margin-top: 12px;
@@ -219,7 +223,9 @@
     <input id="tema_materia" name="tema_materia" maxlength="240" placeholder="Ej.: despido discriminatorio; ART; solidaridad art. 30 LCT; caducidad procesal; prueba digital">
 
     <label for="consulta">Referencia de consulta</label>
-    <textarea id="consulta" name="consulta" maxlength="1400" required placeholder="Hechos relevantes, etapa procesal, urgencia y pregunta jurídica concreta. Evite datos personales no indispensables. No pegue textos extensos de documentos ni transcriba prueba sensible completa."></textarea>
+    <textarea id="consulta" name="consulta" maxlength="4000" required aria-describedby="consulta-limite consulta-contador" placeholder="Hechos relevantes, etapa procesal, urgencia y pregunta jurídica concreta. Evite datos personales no indispensables. No pegue textos extensos de documentos ni transcriba prueba sensible completa."></textarea>
+    <p id="consulta-limite" class="field-note">Máximo 4.000 caracteres.</p>
+    <p id="consulta-contador" class="field-note character-count" aria-live="polite">0 / 4.000 caracteres</p>
 
     <label class="consent">
       <input id="consent_ia" name="consent_ia" type="checkbox" required>
@@ -306,6 +312,20 @@
     preview.textContent = buildWhatsappText(form);
     preview.style.display = "block";
   });
+
+  const consultaField = document.getElementById("consulta");
+  const consultaCounter = document.getElementById("consulta-contador");
+  const characterNumberFormat = new Intl.NumberFormat("es-AR");
+
+  function updateConsultaCounter() {
+    consultaCounter.textContent = characterNumberFormat.format(consultaField.value.length)
+      + " / "
+      + characterNumberFormat.format(consultaField.maxLength)
+      + " caracteres";
+  }
+
+  consultaField.addEventListener("input", updateConsultaCounter);
+  updateConsultaCounter();
 
   window.JurisWhatsAppBridge.attach({
     formId: "consulta-form",
