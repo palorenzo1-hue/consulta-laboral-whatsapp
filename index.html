@@ -188,7 +188,7 @@
   <form id="consulta-form">
     <label for="cliente">Nombre del consultante / carpeta de gestión</label>
     <input id="cliente" name="cliente" autocomplete="name" required placeholder="Ej.: Juan Perez">
-    <p class="field-note">Este dato identifica al remitente y no se incorpora al análisis de Codex.</p>
+    <p class="field-note">Este dato identifica al remitente y se utiliza exclusivamente para gestionar y devolver la consulta.</p>
 
 
     <label for="contacto_whatsapp">WhatsApp de contacto</label>
@@ -241,7 +241,7 @@
     <label for="tema_materia">Temas de consulta</label>
     <input id="tema_materia" name="tema_materia" maxlength="240" placeholder="Ej.: despido discriminatorio; ART; solidaridad art. 30 LCT; caducidad procesal; prueba digital">
 
-    <div class="privacy"><strong>PRIVACIDAD OBLIGATORIA — DATOS ANONIMIZADOS/SEUDONIMIZADOS.</strong> Puede indicar su nombre y WhatsApp: se usan sólo para gestionar y devolver la consulta y no se envían a Codex. En el relato, sustituya los datos de terceros por roles (<code>TRABAJADOR A</code>, <code>EMPLEADOR B</code>, <code>TESTIGO 1</code>), iniciales no reales o seudónimos expresamente aclarados. Conserve ciudad, localidad, barrio, lugar de trabajo y demás datos necesarios para determinar la competencia. No incluya nombres reales, DNI/CUIL/CUIT, teléfonos, correos ni domicilios exactos. Si SOLIA detecta esos datos o contenido no permitido, la consulta no será procesada y recibirá por WhatsApp un aviso para corregirla y reenviarla.</div>
+    <div class="privacy"><strong>PRIVACIDAD OBLIGATORIA — DATOS ANONIMIZADOS/SEUDONIMIZADOS.</strong> Puede indicar su nombre y WhatsApp: se usan sólo para gestionar y devolver la consulta. En el relato, sustituya los datos de terceros por roles (<code>TRABAJADOR A</code>, <code>EMPLEADOR B</code>, <code>TESTIGO 1</code>), iniciales no reales o seudónimos expresamente aclarados. Conserve ciudad, localidad, barrio, lugar de trabajo y demás datos necesarios para determinar la competencia. No incluya nombres reales, DNI/CUIL/CUIT, teléfonos, correos ni domicilios exactos. Si SOLIA detecta esos datos o contenido no permitido, la consulta no será procesada y recibirá por WhatsApp un aviso para corregirla y reenviarla.</div>
 
     <label for="consulta">Referencia de consulta</label>
     <textarea id="consulta" name="consulta" maxlength="4000" required aria-describedby="consulta-limite consulta-contador" placeholder="Hechos relevantes, etapa procesal, urgencia y pregunta jurídica concreta. Evite datos personales no indispensables. No pegue textos extensos de documentos ni transcriba prueba sensible completa."></textarea>
@@ -255,7 +255,7 @@
     <label class="consent">
       <input id="anonimizar_ia" type="checkbox" checked disabled aria-disabled="true">
       <input name="anonimizar_ia" type="hidden" value="Si">
-      <span><strong>DATOS ANONIMIZADOS / SEUDONIMIZADOS: ACTIVADO OBLIGATORIAMENTE.</strong> El nombre y el WhatsApp del consultante quedan sólo en la capa de gestión y no se incorporan al análisis de Codex.</span>
+      <span><strong>DATOS ANONIMIZADOS / SEUDONIMIZADOS: ACTIVADO OBLIGATORIAMENTE.</strong> El nombre y el WhatsApp del consultante se utilizan exclusivamente para gestionar y devolver la consulta.</span>
     </label>
     <label class="consent">
       <input id="consent_datos_sensibles" name="consent_datos_sensibles" type="checkbox" required>
