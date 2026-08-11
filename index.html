@@ -168,8 +168,9 @@
   <p class="muted">Complete los datos mínimos para orientar la auditoría. Este formulario no permite subir documentación.</p>
 
   <form id="consulta-form">
-    <label for="cliente">Nombre / carpeta</label>
+    <label for="cliente">Nombre del consultante / carpeta de gestión</label>
     <input id="cliente" name="cliente" autocomplete="name" required placeholder="Ej.: Juan Perez">
+    <p class="field-note">Este dato identifica al remitente y no se incorpora al análisis de Codex.</p>
 
 
     <label for="contacto_whatsapp">WhatsApp de contacto</label>
@@ -222,6 +223,8 @@
     <label for="tema_materia">Temas de consulta</label>
     <input id="tema_materia" name="tema_materia" maxlength="240" placeholder="Ej.: despido discriminatorio; ART; solidaridad art. 30 LCT; caducidad procesal; prueba digital">
 
+    <div class="privacy"><strong>PRIVACIDAD OBLIGATORIA — DATOS ANONIMIZADOS/SEUDONIMIZADOS.</strong> Puede indicar su nombre y WhatsApp: se usan sólo para gestionar y devolver la consulta y no se envían a Codex. En el relato, sustituya los datos de terceros por roles (<code>TRABAJADOR A</code>, <code>EMPLEADOR B</code>, <code>TESTIGO 1</code>), iniciales no reales o seudónimos expresamente aclarados. Conserve ciudad, localidad, barrio, lugar de trabajo y demás datos necesarios para determinar la competencia. No incluya nombres reales, DNI/CUIL/CUIT, teléfonos, correos ni domicilios exactos. Si SOLIA detecta esos datos o contenido no permitido, la consulta no será procesada y recibirá por WhatsApp un aviso para corregirla y reenviarla.</div>
+
     <label for="consulta">Referencia de consulta</label>
     <textarea id="consulta" name="consulta" maxlength="4000" required aria-describedby="consulta-limite consulta-contador" placeholder="Hechos relevantes, etapa procesal, urgencia y pregunta jurídica concreta. Evite datos personales no indispensables. No pegue textos extensos de documentos ni transcriba prueba sensible completa."></textarea>
     <p id="consulta-limite" class="field-note">Máximo 4.000 caracteres.</p>
@@ -232,8 +235,9 @@
       <span>Acepto que la consulta sea analizada mediante herramientas de inteligencia artificial experimental e investigativa, sin validación humana salvo contratación o selección expresa de informe con validación experta.</span>
     </label>
     <label class="consent">
-      <input id="anonimizar_ia" name="anonimizar_ia" type="checkbox">
-      <span>Solicito anonimizar datos personales directos antes de enviar el caso a IA externa, cuando ello sea técnicamente posible sin afectar el análisis.</span>
+      <input id="anonimizar_ia" type="checkbox" checked disabled aria-disabled="true">
+      <input name="anonimizar_ia" type="hidden" value="Si">
+      <span><strong>DATOS ANONIMIZADOS / SEUDONIMIZADOS: ACTIVADO OBLIGATORIAMENTE.</strong> El nombre y el WhatsApp del consultante quedan sólo en la capa de gestión y no se incorporan al análisis de Codex.</span>
     </label>
     <label class="consent">
       <input id="consent_datos_sensibles" name="consent_datos_sensibles" type="checkbox" required>
@@ -275,14 +279,32 @@
     text = text.replace(/\b(?:DNI|D\.N\.I\.|CUIL|CUIT)\s*[:#]?\s*\d[\d.\-\s]{5,}\b/gi, "[DOCUMENTO RESERVADO]");
     text = text.replace(/\b\d{2}-\d{8}-\d\b/g, "[CUIT/CUIL RESERVADO]");
     text = text.replace(/\b(?:tel(?:efono)?|teléfono|cel(?:ular)?|whatsapp|wsp)\s*[:#]?\s*\+?\d[\d\s().-]{6,}\b/gi, "[TELEFONO RESERVADO]");
-    text = text.replace(/\b(?:domicilio|direccion|dirección)\s*[:#]?\s*[^,\n;]{5,80}/gi, "[DOMICILIO RESERVADO]");
+    text = text.replace(/\b(?:domicilio|direccion|dirección|vive|reside|sito|sita|calle|avenida|av\.?|bulevar|bv\.?|ruta)\s*(?:en|real|legal|particular|laboral|de)?\s*[:#-]?\s*[^\n;]{0,80}?\b\d{1,6}\b/gi, "[DOMICILIO EXACTO RESERVADO]");
     return text;
   }
 
+  window.anonymizeDirectData = anonymizeDirectData;
+
+  function detectSoliaPrivacyViolations(form) {
+    const data = new FormData(form);
+    const value = String(data.get("consulta") || "") + "\n" + String(data.get("tema_materia") || "");
+    const privacyScanValue = value.replace(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,30}(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,30}){0,3}\s*\((?:seud[oó]nimo|nombre ficticio|alias ficticio)\)/gi, "[SEUDONIMO_DECLARADO]");
+    const patterns = [
+      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+      /\b(?:DNI|CUIL|CUIT)\s*(?:N[°ºo.]?\s*)?[:#-]?\s*\d[\d.\s-]{5,}\d\b/i,
+      /\b(?:tel(?:e?fono)?|teléfono|cel(?:ular)?|whats?app|wsp)\s*[:#-]?\s*\+?\d[\d\s().-]{6,}\d\b/i,
+      /\b(?:domicilio|direcci[oó]n|vive|reside|sito|sita|calle|avenida|av\.?|bulevar|bv\.?|ruta)\s*(?:en|real|legal|particular|laboral|de)?\s*[:#-]?\s*[^\n;]{0,80}?\b\d{1,6}\b/i,
+      /\b(?:nombre|apellido|trabajador(?:a)?|actor(?:a)?|demandante|empleador(?:a)?|demandad[oa]|testigo|m[eé]dic[oa])\s*[:#=-]\s*[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,30}/i,
+      /(?:ignor[áa]\s+(?:todas\s+)?(?:las\s+)?instrucciones|system\s+prompt|developer\s+message|mensaje\s+del\s+sistema|<script\b|javascript:)/i
+    ];
+    return patterns.some(function (pattern) { return pattern.test(privacyScanValue); }) ? ["DATOS_DE_TERCEROS_O_CONTENIDO_NO_PERMITIDO"] : [];
+  }
+  window.detectSoliaPrivacyViolations = detectSoliaPrivacyViolations;
+
   function buildWhatsappText(form) {
     const data = new FormData(form);
-    const anonymize = data.get("anonimizar_ia") ? "Si" : "No";
-    const clientLabel = anonymize === "Si" ? "CONSULTA_ANONIMIZADA" : data.get("cliente");
+    const anonymize = "Si";
+    const clientLabel = "CONSULTA_ANONIMIZADA";
     const reference = data.get("consulta") || "Solicitud de consulta laboral. Datos y documentacion sensible se remitiran por canal indicado.";
     const safeReference = anonymize === "Si" ? anonymizeDirectData(reference) : reference;
     return [

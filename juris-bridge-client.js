@@ -52,7 +52,7 @@
       submission_id: id,
       submitted_at: new Date().toISOString(),
       source: "public_whatsapp_form",
-      cliente: data.get("anonimizar_ia") ? "CONSULTA_ANONIMIZADA" : String(data.get("cliente") || "").trim(),
+      cliente: String(data.get("cliente") || "").trim(),
       contacto_whatsapp: String(data.get("contacto_whatsapp") || "").trim(),
       jurisdiccion: String(data.get("jurisdiccion") || "").trim(),
       product_mode: String(data.get("product_mode") || "Editorial Juris - jurisdiccional para abogados").trim(),
@@ -60,8 +60,8 @@
       naturaleza: String(data.get("naturaleza") || "Fondo").trim(),
       perfil_servicio: String(data.get("perfil_servicio") || "").trim(),
       tema_materia: String(data.get("tema_materia") || "").trim(),
-      consulta: String(data.get("consulta") || "").trim(),
-      anonimizar_ia: Boolean(data.get("anonimizar_ia")),
+      consulta: window.anonymizeDirectData(String(data.get("consulta") || "").trim()),
+      anonimizar_ia: true,
       consent_ia: Boolean(data.get("consent_ia")),
       consent_datos_sensibles: Boolean(data.get("consent_datos_sensibles")),
       raw_message: rawMessage
@@ -104,6 +104,11 @@
       if (!form.reportValidity()) return;
       const submitButton = form.querySelector("button[type='submit']");
       if (submitButton.disabled) return;
+      const privacyViolations = window.detectSoliaPrivacyViolations ? window.detectSoliaPrivacyViolations(form) : ["PRIVACY_PREFLIGHT_MISSING"];
+      if (privacyViolations.length) {
+        showNotice(notice, "La consulta contiene datos identificatorios de terceros o contenido no permitido. Sustitúyalos por roles, iniciales no reales o seudónimos. Mantenga ciudades, localidades y barrios necesarios para la competencia.", "pending");
+        return;
+      }
       submitButton.disabled = true;
       const originalLabel = submitButton.textContent;
       submitButton.textContent = "Registrando consulta…";
@@ -121,7 +126,8 @@
             source: payload.source,
             jurisdiction: payload.jurisdiccion,
             consent_ia: payload.consent_ia,
-            consent_data: payload.consent_datos_sensibles
+            consent_data: payload.consent_datos_sensibles,
+            privacy_mode: "mandatory_v1"
           },
           envelope: envelope
         });
