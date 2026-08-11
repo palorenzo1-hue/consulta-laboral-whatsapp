@@ -195,6 +195,12 @@
     <input id="contacto_whatsapp" name="contacto_whatsapp" autocomplete="tel" inputmode="tel" maxlength="30" required placeholder="Ej.: +54 9 341 123-4567">
     <p class="field-note">Se cifra antes de registrarse y se usa únicamente para vincular la consulta y, en una etapa posterior autorizada, devolver el informe final.</p>
 
+    <div id="access-code-field">
+      <label for="access_code">Código de acceso SOLIA</label>
+      <input id="access_code" name="access_code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40" placeholder="SOLIA-XXXXX-XXXXX-XXXXX-XXXXX">
+      <p id="access-code-note" class="field-note">Ingrese el código individual suministrado por JURIS o por el administrador de SOLIA.</p>
+    </div>
+
     <label for="tipo">Tipo de consultante</label>
     <select id="tipo" name="tipo">
       <option>Abogado</option>
@@ -273,7 +279,7 @@
 
 
 <script src="./juris-bridge-config.js"></script>
-<script src="./juris-bridge-client.js"></script>
+<script src="./juris-bridge-client-v2.js"></script>
 
 <script>
   const whatsappNumber = "5493412163531";
