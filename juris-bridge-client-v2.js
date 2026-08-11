@@ -152,7 +152,10 @@
           submitButton.textContent = originalLabel;
           return;
         }
-        showNotice(notice, "WhatsApp se abrirá, pero la cola automática no confirmó el ingreso. Conserve el mensaje enviado: Pablo deberá verificarlo manualmente.", "pending");
+        showNotice(notice, "NO SE PROCESÓ LA CONSULTA. SOLIA no confirmó el ingreso automático. No se abrirá WhatsApp ni se enviará el caso. Espere unos instantes y vuelva a intentarlo.", "error");
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+        return;
       }
       const whatsappUrl = "https://wa.me/" + options.whatsappNumber + "?text=" + window.encodeForQuery(text);
       window.setTimeout(function () { window.location.href = whatsappUrl; }, 500);
