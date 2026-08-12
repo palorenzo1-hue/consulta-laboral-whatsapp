@@ -83,12 +83,12 @@
   function accessMessage(code) {
     const messages = {
       ACCESS_CODE_REQUIRED: "Debe ingresar el código de acceso SOLIA suministrado por JURIS o por el administrador.",
-      ACCESS_CODE_INVALID: "El código de acceso no es válido. Verifíquelo y vuelva a intentarlo.",
+      ACCESS_CODE_INVALID: "Código incorrecto o no habilitado. La consulta no fue procesada. Verifique el código e inténtelo nuevamente.",
       ACCESS_CAMPAIGN_INACTIVE: "Este grupo de códigos todavía no está habilitado.",
       ACCESS_CODE_DRAFT: "Este código todavía no está habilitado.",
       ACCESS_CODE_SUSPENDED: "Este código se encuentra suspendido.",
       ACCESS_CODE_REVOKED: "Este código fue revocado.",
-      ACCESS_CODE_EXHAUSTED: "Este código ya utilizó todas sus consultas disponibles.",
+      ACCESS_CODE_EXHAUSTED: "Este código agotó las consultas disponibles. La consulta no fue procesada. Solicite un nuevo código.",
       ACCESS_CODE_EXPIRED: "Este código está vencido.",
       ACCESS_CODE_NOT_YET_VALID: "Este código todavía no se encuentra vigente.",
       ACCESS_CODE_BOUND_TO_OTHER_PHONE: "Este código está vinculado a otro número de WhatsApp.",
