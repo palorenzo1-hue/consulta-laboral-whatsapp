@@ -24,6 +24,6 @@ assert.match(
 const accessCatch = client.indexOf('if (code.indexOf("ACCESS_") === 0)');
 const whatsappNavigation = client.indexOf('const whatsappUrl = "https://wa.me/"');
 assert.ok(accessCatch >= 0 && whatsappNavigation > accessCatch);
-assert.match(html, /juris-bridge-client-v2\.js\?v=20260811-access-errors-1/);
+assert.match(html, /juris-bridge-client-v2\.js\?v=20260812-phone-canonical-1/);
 
 console.log("OK: código inválido o agotado informa el rechazo y no abre WhatsApp");

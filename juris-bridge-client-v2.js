@@ -21,6 +21,28 @@
     return Array.from(new Uint8Array(digest), function (byte) { return byte.toString(16).padStart(2, "0"); }).join("");
   }
 
+  function normalizeAccessPhone(value) {
+    const raw = String(value || "");
+    const explicitInternational = /^\s*(?:\+|00)/.test(raw);
+    let digits = raw.replace(/\D/g, "");
+    if (digits.indexOf("00") === 0) digits = digits.slice(2);
+
+    // La vinculación identifica el número argentino, no la forma en que fue
+    // escrito. +54 9, +54 y el formato nacional de diez dígitos son iguales.
+    if (/^549\d{10}$/.test(digits)) return "54" + digits.slice(3);
+    if (/^54\d{10}$/.test(digits)) return digits;
+    if (/^0\d{10}$/.test(digits)) return "54" + digits.slice(1);
+    if (/^\d{10}$/.test(digits)) return "54" + digits;
+
+    // Compatibilidad con la notación local histórica de Rosario: 0341 15...
+    // o 341 15... equivalen a 341..., sin el prefijo móvil 15.
+    const rosarioLocal = digits.match(/^(?:54)?0?(341)15(\d{7})$/);
+    if (rosarioLocal) return "54" + rosarioLocal[1] + rosarioLocal[2];
+
+    // Los teléfonos extranjeros conservan su código de país (por ejemplo 34).
+    return digits;
+  }
+
   async function encryptPayload(payload, config) {
     if (!window.crypto || !window.crypto.subtle) throw new Error("WEBCRYPTO_UNAVAILABLE");
     const publicKey = await window.crypto.subtle.importKey("jwk", config.publicKeyJwk, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]);
@@ -148,7 +170,7 @@
         const data = new FormData(form);
         const payload = payloadFromForm(form, text, id);
         const envelope = await encryptPayload(payload, config);
-        const normalizedPhone = String(data.get("contacto_whatsapp") || "").replace(/\D/g, "");
+        const normalizedPhone = normalizeAccessPhone(data.get("contacto_whatsapp"));
         const result = await postIntake(config.endpoint, {
           schema_version: payload.schema_version,
           submission_id: id,
@@ -178,5 +200,5 @@
     });
   }
 
-  window.JurisWhatsAppBridge = Object.freeze({ attach: attach, encryptPayload: encryptPayload, payloadFromForm: payloadFromForm, accessMessage: accessMessage });
+  window.JurisWhatsAppBridge = Object.freeze({ attach: attach, encryptPayload: encryptPayload, payloadFromForm: payloadFromForm, accessMessage: accessMessage, normalizeAccessPhone: normalizeAccessPhone });
 }());
