@@ -63,6 +63,21 @@
     notice.style.color = kind === "error" ? "#8a1c13" : kind === "pending" ? "#6b4f00" : "#0b5345";
   }
 
+  function privacyMessage(codes) {
+    const labels = {
+      CORREO_ELECTRONICO: "correo electrónico",
+      DNI_CUIL_CUIT: "DNI, CUIL o CUIT",
+      TELEFONO_DE_TERCERO: "teléfono de un tercero",
+      DOMICILIO_EXACTO: "domicilio exacto",
+      NOMBRE_ROTULADO: "nombre real rotulado",
+      CONTENIDO_NO_PERMITIDO: "contenido no permitido",
+      PRIVACY_PREFLIGHT_MISSING: "control de privacidad no disponible"
+    };
+    const detected = codes.map(function (code) { return labels[code] || "dato identificatorio"; });
+    return "La consulta no fue procesada. El formulario detectó: " + detected.join(", ")
+      + ". Sustituya únicamente ese dato por un rol o seudónimo. Puede conservar fechas, ciudades, localidades, barrios y lugares de trabajo necesarios para la competencia.";
+  }
+
   async function accessStatus(endpoint) {
     const response = await fetch(endpoint.replace(/\/$/, "") + "/api/access/status", { mode: "cors", cache: "no-store" });
     if (!response.ok) throw new Error("ACCESS_STATUS_UNAVAILABLE");
@@ -121,7 +136,7 @@
       if (submitButton.disabled) return;
       const privacyViolations = window.detectSoliaPrivacyViolations ? window.detectSoliaPrivacyViolations(form) : ["PRIVACY_PREFLIGHT_MISSING"];
       if (privacyViolations.length) {
-        showNotice(notice, "La consulta contiene datos identificatorios de terceros o contenido no permitido. Sustitúyalos por roles, iniciales no reales o seudónimos. Mantenga ciudades, localidades y barrios necesarios para la competencia.", "pending");
+        showNotice(notice, privacyMessage(privacyViolations), "pending");
         return;
       }
       submitButton.disabled = true;

@@ -303,7 +303,16 @@
     text = text.replace(/\b(?:DNI|D\.N\.I\.|CUIL|CUIT)\s*[:#]?\s*\d[\d.\-\s]{5,}\b/gi, "[DOCUMENTO RESERVADO]");
     text = text.replace(/\b\d{2}-\d{8}-\d\b/g, "[CUIT/CUIL RESERVADO]");
     text = text.replace(/\b(?:tel(?:efono)?|teléfono|cel(?:ular)?|whatsapp|wsp)\s*[:#]?\s*\+?\d[\d\s().-]{6,}\b/gi, "[TELEFONO RESERVADO]");
-    text = text.replace(/\b(?:domicilio|direccion|dirección|vive|reside|sito|sita|calle|avenida|av\.?|bulevar|bv\.?|ruta)\s*(?:en|real|legal|particular|laboral|de)?\s*[:#-]?\s*[^\n;]{0,80}?\b\d{1,6}\b/gi, "[DOMICILIO EXACTO RESERVADO]");
+    const letterBoundary = "(^|[^A-ZÁÉÍÓÚÜÑa-záéíóúüñ0-9_])";
+    const streetMarker = "(?:calle|avenida|av\\.?|bulevar|bv\\.?)";
+    const exactAddressPatterns = [
+      new RegExp(letterBoundary + "(?:domicilio|direccion|dirección)\\s*(?:real|legal|particular|laboral)?\\s*[:#-]?\\s*[^\\n;]{0,60}?\\b\\d{1,6}\\b", "gi"),
+      new RegExp(letterBoundary + streetMarker + "\\s+[^\\n;]{1,50}?\\b\\d{1,6}\\b", "gi"),
+      new RegExp(letterBoundary + "(?:vive|reside|sito|sita)\\s+en\\s+[^\\n;]{1,60}?\\b\\d{1,6}\\b", "gi")
+    ];
+    exactAddressPatterns.forEach(function (pattern) {
+      text = text.replace(pattern, "$1[DOMICILIO EXACTO RESERVADO]");
+    });
     return text;
   }
 
@@ -313,15 +322,22 @@
     const data = new FormData(form);
     const value = String(data.get("consulta") || "") + "\n" + String(data.get("tema_materia") || "");
     const privacyScanValue = value.replace(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,30}(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,30}){0,3}\s*\((?:seud[oó]nimo|nombre ficticio|alias ficticio)\)/gi, "[SEUDONIMO_DECLARADO]");
+    const letterBoundary = "(^|[^A-ZÁÉÍÓÚÜÑa-záéíóúüñ0-9_])";
+    const streetMarker = "(?:calle|avenida|av\\.?|bulevar|bv\\.?)";
     const patterns = [
-      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
-      /\b(?:DNI|CUIL|CUIT)\s*(?:N[°ºo.]?\s*)?[:#-]?\s*\d[\d.\s-]{5,}\d\b/i,
-      /\b(?:tel(?:e?fono)?|teléfono|cel(?:ular)?|whats?app|wsp)\s*[:#-]?\s*\+?\d[\d\s().-]{6,}\d\b/i,
-      /\b(?:domicilio|direcci[oó]n|vive|reside|sito|sita|calle|avenida|av\.?|bulevar|bv\.?|ruta)\s*(?:en|real|legal|particular|laboral|de)?\s*[:#-]?\s*[^\n;]{0,80}?\b\d{1,6}\b/i,
-      /\b(?:nombre|apellido|trabajador(?:a)?|actor(?:a)?|demandante|empleador(?:a)?|demandad[oa]|testigo|m[eé]dic[oa])\s*[:#=-]\s*[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,30}/i,
-      /(?:ignor[áa]\s+(?:todas\s+)?(?:las\s+)?instrucciones|system\s+prompt|developer\s+message|mensaje\s+del\s+sistema|<script\b|javascript:)/i
+      ["CORREO_ELECTRONICO", /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i],
+      ["DNI_CUIL_CUIT", /\b(?:DNI|CUIL|CUIT)\s*(?:N[°ºo.]?\s*)?[:#-]?\s*\d[\d.\s-]{5,}\d\b/i],
+      ["TELEFONO_DE_TERCERO", /\b(?:tel(?:e?fono)?|teléfono|cel(?:ular)?|whats?app|wsp)\s*[:#-]?\s*\+?\d[\d\s().-]{6,}\d\b/i],
+      ["DOMICILIO_EXACTO", new RegExp(letterBoundary + "(?:domicilio|direcci[oó]n)\\s*(?:real|legal|particular|laboral)?\\s*[:#-]?\\s*[^\\n;]{0,60}?\\b\\d{1,6}\\b", "i")],
+      ["DOMICILIO_EXACTO", new RegExp(letterBoundary + streetMarker + "\\s+[^\\n;]{1,50}?\\b\\d{1,6}\\b", "i")],
+      ["DOMICILIO_EXACTO", new RegExp(letterBoundary + "(?:vive|reside|sito|sita)\\s+en\\s+[^\\n;]{1,60}?\\b\\d{1,6}\\b", "i")],
+      ["NOMBRE_ROTULADO", /\b(?:nombre|apellido|trabajador(?:a)?|actor(?:a)?|demandante|empleador(?:a)?|demandad[oa]|testigo|m[eé]dic[oa])\s*[:#=-]\s*[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,30}/i],
+      ["CONTENIDO_NO_PERMITIDO", /(?:ignor[áa]\s+(?:todas\s+)?(?:las\s+)?instrucciones|system\s+prompt|developer\s+message|mensaje\s+del\s+sistema|<script\b|javascript:)/i]
     ];
-    return patterns.some(function (pattern) { return pattern.test(privacyScanValue); }) ? ["DATOS_DE_TERCEROS_O_CONTENIDO_NO_PERMITIDO"] : [];
+    return patterns.reduce(function (reasons, detector) {
+      if (detector[1].test(privacyScanValue) && reasons.indexOf(detector[0]) === -1) reasons.push(detector[0]);
+      return reasons;
+    }, []);
   }
   window.detectSoliaPrivacyViolations = detectSoliaPrivacyViolations;
 
