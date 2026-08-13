@@ -43,6 +43,44 @@
     return digits;
   }
 
+  // La comodidad queda limitada al almacenamiento local de este navegador.
+  // No se publica ningún teléfono ni código: sólo se guarda un registro local
+  // por hash del teléfono, después de una validación aceptada por el Worker.
+  var LOCAL_ACCESS_CODE_STORAGE_KEY = "solia.access_codes_by_phone.v1";
+  var LOCAL_ACCESS_CODE_PATTERN = /^SOLIA-[A-Z0-9]{5}(?:-[A-Z0-9]{5}){4}$/;
+
+  function readStoredAccessCode(phoneHash) {
+    if (!phoneHash) return "";
+    try {
+      var raw = window.localStorage.getItem(LOCAL_ACCESS_CODE_STORAGE_KEY);
+      if (!raw) return "";
+      var stored = JSON.parse(raw);
+      var record = stored && stored.version === 1 && stored.records ? stored.records[phoneHash] : null;
+      if (!record || !LOCAL_ACCESS_CODE_PATTERN.test(String(record.code || ""))) return "";
+      return String(record.code).toUpperCase();
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function rememberAccessCode(phoneHash, code) {
+    if (!phoneHash) return;
+    var normalizedCode = String(code || "").trim().toUpperCase();
+    if (!LOCAL_ACCESS_CODE_PATTERN.test(normalizedCode)) return;
+    try {
+      var raw = window.localStorage.getItem(LOCAL_ACCESS_CODE_STORAGE_KEY);
+      var stored = raw ? JSON.parse(raw) : null;
+      var records = stored && stored.version === 1 && stored.records ? stored.records : {};
+      records[phoneHash] = { code: normalizedCode, saved_at: new Date().toISOString() };
+      var keys = Object.keys(records);
+      if (keys.length > 10) {
+        keys.sort(function (left, right) { return String(records[left].saved_at).localeCompare(String(records[right].saved_at)); });
+        delete records[keys[0]];
+      }
+      window.localStorage.setItem(LOCAL_ACCESS_CODE_STORAGE_KEY, JSON.stringify({ version: 1, records: records }));
+    } catch (_) { /* el formulario sigue funcionando sin almacenamiento local */ }
+  }
+
   async function encryptPayload(payload, config) {
     if (!window.crypto || !window.crypto.subtle) throw new Error("WEBCRYPTO_UNAVAILABLE");
     const publicKey = await window.crypto.subtle.importKey("jwk", config.publicKeyJwk, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]);
@@ -160,6 +198,27 @@
     let accessWatchTimer = null;
     let accessWatchGeneration = 0;
 
+    let localAutofilled = false;
+
+    async function prefillPersonalCode() {
+      if (!accessInput || !phoneInput) return;
+      var normalizedPhone = normalizeAccessPhone(phoneInput.value);
+      if (!normalizedPhone) return;
+      var phoneHash;
+      try { phoneHash = await sha256Hex(normalizedPhone); } catch (_) { return; }
+      var storedCode = readStoredAccessCode(phoneHash);
+      if (!storedCode && localAutofilled) {
+        accessInput.value = "";
+        localAutofilled = false;
+        return;
+      }
+      if (storedCode && (!accessInput.value || localAutofilled)) {
+        accessInput.value = storedCode;
+        localAutofilled = true;
+        accessInput.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+
     function stopAccessWatch(submitButton, originalLabel, enableButton) {
       accessWatchGeneration += 1;
       if (accessWatchTimer !== null) window.clearTimeout(accessWatchTimer);
@@ -245,6 +304,7 @@
           routing: { source: payload.source, jurisdiction: payload.jurisdiccion, consent_ia: payload.consent_ia, consent_data: payload.consent_datos_sensibles, privacy_mode: "mandatory_v1", contact_phone_hash: await sha256Hex(normalizedPhone) },
           envelope: envelope
         });
+        rememberAccessCode(await sha256Hex(normalizedPhone), data.get("access_code"));
         text += "\n\nID de ingreso automatico: " + result.intake_id;
         showNotice(notice, "CONSULTA REGISTRADA PARA PROCESAMIENTO AUTOMÁTICO. Se abrirá WhatsApp para confirmar el envío.", "ok");
       } catch (error) {
@@ -272,6 +332,8 @@
     [accessInput, phoneInput].forEach(function (input) {
       if (!input) return;
       input.addEventListener("input", function () {
+        if (input === phoneInput) prefillPersonalCode();
+        if (input === accessInput) localAutofilled = false;
         const submitButton = form.querySelector("button[type='submit']");
         if (accessWatchTimer !== null && submitButton) {
           stopAccessWatch(submitButton, "Enviar consulta", true);
@@ -279,6 +341,7 @@
         }
       });
     });
+    window.setTimeout(prefillPersonalCode, 0);
   }
 
   window.JurisWhatsAppBridge = Object.freeze({ attach: attach, encryptPayload: encryptPayload, payloadFromForm: payloadFromForm, accessMessage: accessMessage, accessCheck: accessCheck, normalizeAccessPhone: normalizeAccessPhone });
