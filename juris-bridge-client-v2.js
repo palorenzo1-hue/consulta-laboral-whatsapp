@@ -106,6 +106,19 @@
     return response.json();
   }
 
+  async function accessCheck(endpoint, accessCode, phoneHash) {
+    const response = await fetch(endpoint.replace(/\/$/, "") + "/api/access/check", {
+      method: "POST",
+      mode: "cors",
+      cache: "no-store",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ access_code: accessCode, contact_phone_hash: phoneHash })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || ("HTTP_" + response.status));
+    return result;
+  }
+
   async function postIntake(endpoint, body) {
     const controller = new AbortController();
     const timer = window.setTimeout(function () { controller.abort(); }, 12000);
@@ -129,7 +142,7 @@
       ACCESS_CODE_EXPIRED: "Este código está vencido.",
       ACCESS_CODE_NOT_YET_VALID: "Este código todavía no se encuentra vigente.",
       ACCESS_CODE_BOUND_TO_OTHER_PHONE: "Este código está vinculado a otro número de WhatsApp.",
-      ACCESS_CODE_IN_USE: "Este código ya tiene una consulta en proceso. Aguarde su finalización antes de iniciar otra.",
+      ACCESS_CODE_IN_USE: "Este código ya tiene una consulta en proceso. La nueva consulta no fue enviada. El formulario lo habilitará cuando finalice la primera.",
       ACCESS_PHONE_REQUIRED: "Ingrese un número de WhatsApp válido para vincular el código.",
       ACCESS_VALIDATION_UNAVAILABLE: "El control de acceso está momentáneamente fuera de servicio. La consulta no fue procesada; intente nuevamente más tarde."
     };
@@ -141,8 +154,61 @@
     const notice = document.getElementById(options.noticeId || "notice");
     const accessInput = document.getElementById("access_code");
     const accessNote = document.getElementById("access-code-note");
+    const phoneInput = document.getElementById("contacto_whatsapp");
     if (!form || !notice) return;
     const config = window.JURIS_BRIDGE_CONFIG || {};
+    let accessWatchTimer = null;
+    let accessWatchGeneration = 0;
+
+    function stopAccessWatch(submitButton, originalLabel, enableButton) {
+      accessWatchGeneration += 1;
+      if (accessWatchTimer !== null) window.clearTimeout(accessWatchTimer);
+      accessWatchTimer = null;
+      if (enableButton && submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+
+    async function watchAccessAvailability(submitButton, originalLabel) {
+      stopAccessWatch(submitButton, originalLabel, false);
+      const generation = accessWatchGeneration;
+      const accessCode = String(accessInput && accessInput.value || "").trim().toUpperCase();
+      const normalizedPhone = String(phoneInput && phoneInput.value || "").replace(/\D/g, "");
+      const phoneHash = await sha256Hex(normalizedPhone);
+      let consecutiveErrors = 0;
+      submitButton.disabled = true;
+      submitButton.textContent = "Código en uso — aguardando…";
+      showNotice(notice, accessMessage("ACCESS_CODE_IN_USE"), "pending");
+
+      async function poll() {
+        if (generation !== accessWatchGeneration) return;
+        try {
+          const result = await accessCheck(config.endpoint, accessCode, phoneHash);
+          consecutiveErrors = 0;
+          if (result.available) {
+            stopAccessWatch(submitButton, originalLabel, true);
+            showNotice(notice, "El código ya está disponible. Puede enviar la nueva consulta.", "ok");
+            return;
+          }
+          if (result.status !== "ACCESS_CODE_IN_USE") {
+            stopAccessWatch(submitButton, originalLabel, true);
+            showNotice(notice, accessMessage(result.status), "error");
+            return;
+          }
+        } catch (_) {
+          consecutiveErrors += 1;
+          if (consecutiveErrors >= 3) {
+            stopAccessWatch(submitButton, originalLabel, true);
+            showNotice(notice, "No se pudo comprobar si el código ya está disponible. Intente enviarlo nuevamente en unos minutos.", "pending");
+            return;
+          }
+        }
+        accessWatchTimer = window.setTimeout(poll, 15000);
+      }
+
+      accessWatchTimer = window.setTimeout(poll, 15000);
+    }
     if (accessInput && config.endpoint) {
       accessStatus(config.endpoint).then(function (status) {
         accessInput.required = Boolean(status.code_required);
@@ -184,6 +250,10 @@
       } catch (error) {
         const code = String(error && error.message || "");
         if (code.indexOf("ACCESS_") === 0) {
+          if (code === "ACCESS_CODE_IN_USE") {
+            await watchAccessAvailability(submitButton, originalLabel);
+            return;
+          }
           showNotice(notice, accessMessage(code), "error");
           submitButton.disabled = false;
           submitButton.textContent = originalLabel;
@@ -198,7 +268,18 @@
       window.setTimeout(function () { window.location.href = whatsappUrl; }, 500);
       window.setTimeout(function () { submitButton.disabled = false; submitButton.textContent = originalLabel; }, 3000);
     });
+
+    [accessInput, phoneInput].forEach(function (input) {
+      if (!input) return;
+      input.addEventListener("input", function () {
+        const submitButton = form.querySelector("button[type='submit']");
+        if (accessWatchTimer !== null && submitButton) {
+          stopAccessWatch(submitButton, "Enviar consulta", true);
+          showNotice(notice, "Código o WhatsApp modificado. Puede intentar el envío con los nuevos datos.", "pending");
+        }
+      });
+    });
   }
 
-  window.JurisWhatsAppBridge = Object.freeze({ attach: attach, encryptPayload: encryptPayload, payloadFromForm: payloadFromForm, accessMessage: accessMessage, normalizeAccessPhone: normalizeAccessPhone });
+  window.JurisWhatsAppBridge = Object.freeze({ attach: attach, encryptPayload: encryptPayload, payloadFromForm: payloadFromForm, accessMessage: accessMessage, accessCheck: accessCheck, normalizeAccessPhone: normalizeAccessPhone });
 }());
