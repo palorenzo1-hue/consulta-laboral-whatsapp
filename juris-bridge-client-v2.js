@@ -306,7 +306,7 @@
         });
         rememberAccessCode(await sha256Hex(normalizedPhone), data.get("access_code"));
         text += "\n\nID de ingreso automatico: " + result.intake_id;
-        showNotice(notice, "CONSULTA REGISTRADA PARA PROCESAMIENTO AUTOMÁTICO. Se abrirá WhatsApp para confirmar el envío.", "ok");
+        showNotice(notice, "CONSULTA REGISTRADA EN ESPERA. Si no recibe el acuse de SOLIA por WhatsApp dentro de 10 minutos, el equipo puede encontrarse temporalmente fuera de línea; no reenvíe la consulta.", "ok");
       } catch (error) {
         const code = String(error && error.message || "");
         if (code.indexOf("ACCESS_") === 0) {
