@@ -24,6 +24,9 @@ assert.match(
 const accessCatch = client.indexOf('if (code.indexOf("ACCESS_") === 0)');
 const whatsappNavigation = client.indexOf('const whatsappUrl = "https://wa.me/"');
 assert.ok(accessCatch >= 0 && whatsappNavigation > accessCatch);
-assert.match(html, /juris-bridge-client-v2\.js\?v=20260813-outage-notice-1/);
+assert.match(html, /juris-bridge-client-v2\.js\?v=20260815-binary-queue-v1/);
+assert.match(client, /CONSULTA RECIBIDA\. SISTEMA EN CONSULTA/);
+assert.match(client, /CONSULTA RECIBIDA\. SISTEMA DESPEJADO/);
+assert.match(client, /SOLIA SE ENCUENTRA MOMENTÁNEAMENTE EN MANTENIMIENTO/);
 
 console.log("OK: código inválido o agotado informa el rechazo y no abre WhatsApp");

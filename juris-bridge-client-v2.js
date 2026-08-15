@@ -187,6 +187,20 @@
     return messages[code] || "El código de acceso no pudo ser validado. La consulta no fue procesada.";
   }
 
+  function intakeStateMessage(state) {
+    if (String(state || "").toUpperCase() === "BUSY") {
+      return { kind: "pending", text: "CONSULTA RECIBIDA. SISTEMA EN CONSULTA. Su solicitud quedó registrada en espera. Aguarde hasta que finalice la consulta anterior. Cuando comience su procesamiento recibirá el aviso correspondiente. No reenvíe la consulta." };
+    }
+    return { kind: "ok", text: "CONSULTA RECIBIDA. SISTEMA DESPEJADO. Procesamiento inmediato. Tiempo estimado de procesamiento: 15 a 25 minutos. El plazo es orientativo y puede extenderse si la verificación jurídica o de fuentes requiere refuerzo. No reenvíe la consulta." };
+  }
+
+  function serviceMessage(code) {
+    if (code === "SOLIA_MAINTENANCE" || code === "SOLIA_EMERGENCY_STOPPED") {
+      return "SOLIA SE ENCUENTRA MOMENTÁNEAMENTE EN MANTENIMIENTO. La consulta no fue procesada ni consumió el código. Aguarde 15 minutos y reenvíe su consulta.";
+    }
+    return "";
+  }
+
   function attach(options) {
     const form = document.getElementById(options.formId || "consulta-form");
     const notice = document.getElementById(options.noticeId || "notice");
@@ -306,9 +320,17 @@
         });
         rememberAccessCode(await sha256Hex(normalizedPhone), data.get("access_code"));
         text += "\n\nID de ingreso automatico: " + result.intake_id;
-        showNotice(notice, "CONSULTA REGISTRADA EN ESPERA. Si no recibe el acuse de SOLIA por WhatsApp dentro de 10 minutos, el equipo puede encontrarse temporalmente fuera de línea; no reenvíe la consulta.", "ok");
+        const intakeNotice = intakeStateMessage(result.system_state);
+        showNotice(notice, intakeNotice.text, intakeNotice.kind);
       } catch (error) {
         const code = String(error && error.message || "");
+        const unavailableMessage = serviceMessage(code);
+        if (unavailableMessage) {
+          showNotice(notice, unavailableMessage, "error");
+          submitButton.disabled = false;
+          submitButton.textContent = originalLabel;
+          return;
+        }
         if (code.indexOf("ACCESS_") === 0) {
           if (code === "ACCESS_CODE_IN_USE") {
             await watchAccessAvailability(submitButton, originalLabel);
@@ -325,8 +347,8 @@
         return;
       }
       const whatsappUrl = "https://wa.me/" + options.whatsappNumber + "?text=" + window.encodeForQuery(text);
-      window.setTimeout(function () { window.location.href = whatsappUrl; }, 500);
-      window.setTimeout(function () { submitButton.disabled = false; submitButton.textContent = originalLabel; }, 3000);
+      window.setTimeout(function () { window.location.href = whatsappUrl; }, 2500);
+      window.setTimeout(function () { submitButton.disabled = false; submitButton.textContent = originalLabel; }, 5000);
     });
 
     [accessInput, phoneInput].forEach(function (input) {
@@ -344,5 +366,5 @@
     window.setTimeout(prefillPersonalCode, 0);
   }
 
-  window.JurisWhatsAppBridge = Object.freeze({ attach: attach, encryptPayload: encryptPayload, payloadFromForm: payloadFromForm, accessMessage: accessMessage, accessCheck: accessCheck, normalizeAccessPhone: normalizeAccessPhone });
+  window.JurisWhatsAppBridge = Object.freeze({ attach: attach, encryptPayload: encryptPayload, payloadFromForm: payloadFromForm, accessMessage: accessMessage, accessCheck: accessCheck, normalizeAccessPhone: normalizeAccessPhone, intakeStateMessage: intakeStateMessage, serviceMessage: serviceMessage });
 }());

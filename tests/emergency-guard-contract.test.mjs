@@ -5,7 +5,7 @@ const index = fs.readFileSync(new URL("../index.html", import.meta.url), "utf8")
 const guard = fs.readFileSync(new URL("../solia-emergency-guard-v2.js", import.meta.url), "utf8");
 
 assert.match(index, /id="consulta-form"/);
-assert.match(index, /juris-bridge-client-v2\.js\?v=20260813-outage-notice-1/);
+assert.match(index, /juris-bridge-client-v2\.js\?v=20260815-binary-queue-v1/);
 assert.match(index, /solia-emergency-guard-v2\.js\?v=20260814-emergency-stop-2/);
 assert.match(guard, /api\/access\/status/);
 assert.match(guard, /accepting_intakes !== true/);
