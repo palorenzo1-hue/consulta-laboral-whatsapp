@@ -1,6 +1,6 @@
 window.JURIS_BRIDGE_CONFIG = Object.freeze({
   endpoint: "https://juris-whatsapp-intake.solia-laboral-comparador.workers.dev",
-  keyId: "q_60jW4FPNvloz-So0mzSaNt",
+  keyId: "fFdS0WJG_qLpVb08mp97LxwV",
   publicKeyJwk: {
     kty: "RSA",
     alg: "RSA-OAEP-256",
