@@ -6,8 +6,8 @@ window.JURIS_BRIDGE_CONFIG = Object.freeze({
     alg: "RSA-OAEP-256",
     use: "enc",
     key_ops: ["encrypt"],
-    n: "q-gjFLZqIebqxhuOVDMh8DOqYAvKswupqYYc-w736cfLiR_OWo53HjAZYNg_mAvWPdJQaLQkfl2npqI8jahFhq4m9WBujwJSWSozGkNbUXYWpQ3hpZ4cC1BFJmrWkQGloKy6Xi2-Kv8Z-omil4l8ylqXyxWUzs9DLsYN9XAYafzd7F-1G6ZVQ4ntHXnZNUU-ij2MHYd73xF_Hj-1d6KEfCVkq34OPFlPBmlj58_aeq08SjeyKvcjvuVoeIfYIydR01iPIyJVNBMJVa_wslAFUw2zbT-kN_aYYUeppOB5aBtMjcCkETVehzIdmBxhO68Q-uIB2Jb1H6j1R84ebQ9M8OqsKmTpR6GfywOSW1lpuJablNm04D-5J0WQEvhg-eldQTyV8ZCQUOmBBZvX0CnPZZXxtOYE-X9ow9129l0-hHf3Cn2r9nu26NaxH7HFFmgAHaqFYEeXbsOAh6HoxxtU3ugnytDYtVU4Q1aqwfuiLuhwOecsZ2DjfLq6X84Hpfsh",
+    n: "-jewSs_NQ0E5M_i9CnZgZxokxeN-8v3ZedKLyfuSJmNWzQxdPSk270cuc3x3w9rjYNLnQ53cO5l2cBDerl2UXflMAtMwNJSlMMiSJDeAptvDW1RIF6VTfg-QMNmtEWQAhcX18tfatW3kurgYArOWUSc7SNzwWhMPYM2phsDsWh_PxS1W1uuIrWMYHB8Vyq7R7yVcG7e8eBqBA3hSQJc8okLGZF6nwGKWExv-kke1mbQ9ez2jxwWbhrOijIpK2LgLdGunQV70eTfaa2vtd41dFxjuEKzoLJehu3YciiL98mcZ1sRQApwl5ez3gmNzkB7z5y_8-G3h0YQOhiqzAxyHiOOtdknBYp0OTD-k-beA8DyscRO9DPUFwRcf4DQdexO3Mn3Ekk1H_SjcPHgKaIHN803PBA9KOAY9SjuWW2TX-2xowvuwJmXN8g0a-vKg6zvuw5Xe07-37Ue7LfFFXzuO1SqOodm1KJaqWNXrrsAP-7wItZAjr4YFiwmtIq5hAil3",
     e: "AQAB",
-    kid: "q_60jW4FPNvloz-So0mzSaNt"
+    kid: "fFdS0WJG_qLpVb08mp97LxwV"
   }
 });
